@@ -155,7 +155,7 @@
             line-height: 100%;
             transform: translate(-50%, -50%);
             transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
-            z-index: 10;
+            z-index: 50; /* Aumentado z-index */
             display: none;
             filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
         }
@@ -225,13 +225,10 @@
 </head>
 <body>
 
-    <!-- 1. PANTALLA DE INICIO (LOGO) -->
+    <!-- 1. PANTALLA DE INICIO -->
     <div id="start-screen">
-        <!-- Busca automáticamente logo.png. Si falla, muestra texto -->
         <img src="logo.png" alt="LOGO" class="logo-img" onerror="this.style.display='none'; document.getElementById('logo-text').style.display='block';">
-        
         <h2 id="logo-text" style="display:none; color:#f1c40f; margin-bottom:20px;">MI JUEGO</h2>
-
         <button class="btn-large" onclick="goToSetup()">JUGAR</button>
     </div>
 
@@ -263,8 +260,8 @@
             <div class="placeholder-text" id="placeholder" onclick="document.getElementById('fileInput').click()">
                 📷 CARGAR DIBUJO AQUÍ
             </div>
-            <!-- Busca automáticamente tablero.png -->
-            <img id="board-image" src="tablero.png" alt="Tablero" onload="game.handleAutoLoad(this)">
+            <!-- IMPORTANTE: Quitamos el onload="" para evitar el error de sincronización -->
+            <img id="board-image" src="tablero.png" alt="Tablero">
             
             <div id="floating-dice" class="floating-ui">
                 <div class="dice-display-float" id="dice-val">🎲</div>
@@ -277,8 +274,6 @@
         </div>
 
         <div class="bottom-panel">
-            <div class="players-scroll" id="players-list"></div>
-            <div class="log-area" id="game-log"></div>
             <input type="file" id="fileInput" accept="image/*">
         </div>
     </div>
@@ -482,6 +477,25 @@
                 this.maxPos = 66;
                 this.hasLoadedImage = false;
                 this.finishedCount = 0;
+                
+                // Verificar imagen al instanciar el juego
+                this.checkImage();
+            }
+
+            // NUEVO MÉTODO: Verifica si la imagen ya cargó o si debe esperar
+            checkImage() {
+                const img = document.getElementById('board-image');
+                const loadLogic = () => {
+                    this.loadImageLogic(img);
+                };
+
+                if (img.complete) {
+                    // La imagen ya cargó (caché de GitHub)
+                    loadLogic();
+                } else {
+                    // La imagen está cargando, esperamos al evento
+                    img.onload = loadLogic;
+                }
             }
 
             startFromSetup() {
@@ -512,29 +526,11 @@
                 document.getElementById('setup-screen').style.display = 'none';
                 document.getElementById('game-screen').style.display = 'flex';
 
+                // Si la imagen ya se cargó antes de empezar, refrescamos las fichas
                 if(this.hasLoadedImage) {
                     this.updateTokensUI();
                     this.checkBotTurn();
                 }
-            }
-
-            // Carga automática al iniciar si existe el archivo
-            handleAutoLoad(img) {
-                if (img.complete && img.naturalHeight !== 0) {
-                    this.loadImageLogic(img);
-                }
-            }
-
-            loadImage() {
-                const file = document.getElementById('fileInput').files[0];
-                if(!file) return;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = document.getElementById('board-image');
-                    img.src = e.target.result;
-                    img.onload = () => this.loadImageLogic(img);
-                };
-                reader.readAsDataURL(file);
             }
 
             loadImageLogic(img) {
@@ -550,11 +546,28 @@
                 fb.style.display = 'block';
                 fb.style.left = uiConfig.button.x + '%';
                 fb.style.top = uiConfig.button.y + '%';
+                
                 this.hasLoadedImage = true;
-                this.updateTokensUI();
+                
+                // MOSTRAR FICHAS AHORA QUE ESTAMOS SEGUROS QUE EXISTEN
                 document.querySelectorAll('.token').forEach(t => t.style.display = 'block');
-                if(!this.players.length) setup.init(); // Iniciar setup si no se hizo
-                else this.checkBotTurn();
+                this.updateTokensUI();
+                
+                // Iniciar bot si es necesario
+                if(this.players.length) this.checkBotTurn();
+                else setup.init();
+            }
+
+            loadImage() {
+                const file = document.getElementById('fileInput').files[0];
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.getElementById('board-image');
+                    img.src = e.target.result;
+                    img.onload = () => this.loadImageLogic(img);
+                };
+                reader.readAsDataURL(file);
             }
 
             async humanRoll() {
@@ -748,7 +761,7 @@
             }
 
             animateDice(value) {
-                sfx.dice(); // SONIDO GIRAR DADO
+                sfx.dice(); 
                 const diceDisplay = document.getElementById('dice-val');
                 diceDisplay.innerText = '🎲';
                 let count = 0;
@@ -765,6 +778,7 @@
             wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
         }
 
+        // Iniciar juego
         const game = new Game();
         setup.init();
         document.getElementById('fileInput').addEventListener('change', () => game.loadImage());
@@ -778,4 +792,4 @@
         }
     </script>
 </body>
-</html>
+    </html>
