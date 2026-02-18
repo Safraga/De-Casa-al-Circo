@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>JUEGO DE LA OCA</title>
     <style>
         :root {
@@ -19,8 +19,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh; 
-            overflow: hidden;
+            height: 100vh; /* Ocupa toda la pantalla vertical */
+            overflow: hidden; /* Evita scroll */
+            padding-bottom: env(safe-area-inset-bottom); /* Ajuste para no tapar el borde inferior con la barra del navegador */
         }
 
         /* --- PANTALLA DE INICIO --- */
@@ -89,7 +90,17 @@
         .btn-large:active { transform: translateY(4px); box-shadow: none; }
 
         /* --- JUEGO --- */
-        #game-screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 10px; z-index: 10; }
+        #game-screen { 
+            display: none; 
+            width: 100%; 
+            height: 100%; /* Ocupa todo el espacio disponible */
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative; 
+            padding: 10px; 
+            z-index: 10; 
+        }
         
         .fullscreen-btn {
             position: absolute; top: 10px; right: 10px; z-index: 100;
@@ -101,6 +112,7 @@
         .board-wrapper {
             position: relative;
             width: 100%;
+            height: 100%; /* Se ajusta al contenedor */
             background-color: #000;
             border-radius: 8px;
             overflow: hidden;
@@ -114,7 +126,8 @@
         #board-image {
             width: 100%;
             height: 100%;
-            object-fit: contain; 
+            /* CAMBIO CLAVE: 'fill' estira la imagen para que llene todo el espacio disponible */
+            object-fit: fill; 
             display: none; 
         }
 
@@ -149,15 +162,15 @@
 
         /* FICHAS */
         .token {
-            width: 5%; height: 5%;
+            width: 6%; height: 6%; /* Un poco más grandes para pantallas llenas */
             position: absolute;
-            font-size: 2.2rem;
+            font-size: 2.5rem; /* Emojis más grandes */
             text-align: center;
             line-height: 100%;
             transform: translate(-50%, -50%);
             transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
             z-index: 50; 
-            display: none; /* Empiezan ocultas */
+            display: none;
             filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
         }
         
@@ -166,7 +179,7 @@
 
         .bottom-panel { display: none !important; } 
         
-        /* MODAL - Z-INDEX MUY ALTO */
+        /* MODAL */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 9999 !important;
@@ -519,7 +532,7 @@
                 document.getElementById('setup-screen').style.display = 'none';
                 document.getElementById('game-screen').style.display = 'flex';
 
-                // FIX FOR GITHUB FAST LOAD:
+                // FIX PARA GITHUB FAST LOAD:
                 // Si la imagen cargó antes (muy rápido), hasLoadedImage es true.
                 // Si aún no cargó, esperar.
                 if(this.hasLoadedImage) {
@@ -534,7 +547,9 @@
 
             loadImageLogic(img) {
                 const wrapper = document.getElementById('board-wrapper');
-                wrapper.style.aspectRatio = `${img.naturalWidth / img.naturalHeight}`;
+                // NO usamos aspect-ratio. El wrapper ocupa 100% de la pantalla.
+                // La imagen se estira para llenar el contenedor (fill).
+                
                 img.style.display = 'block';
                 document.getElementById('placeholder').style.display = 'none';
                 const fd = document.getElementById('floating-dice');
@@ -749,7 +764,7 @@
                     if (coords && p.element) {
                         p.element.style.left = `calc(${coords.x}% + ${p.offsetX}%)`;
                         p.element.style.top = `calc(${coords.y}% + ${p.offsetY}%)`;
-                        // Asegurar que sean visibles
+                        // Forzar visualización en GitHub
                         p.element.style.display = 'block';
                     }
                 });
