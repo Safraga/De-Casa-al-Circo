@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JUEGO DE LA OCA</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #e74c3c;
+            --text: #ecf0f1;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; text-transform: uppercase; }
+        
+        body {
+            background-color: var(--primary);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh; 
+            overflow: hidden;
+        }
+
+        /* --- PANTALLA DE INICIO --- */
+        #start-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--primary); z-index: 300;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+            text-align: center;
+        }
+
+        .logo-img {
+            max-width: 80%;
+            max-height: 40vh;
+            margin-bottom: 40px;
+            filter: drop-shadow(0 0 20px rgba(241, 196, 15, 0.3));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* --- PANTALLA DE CONFIGURACIÓN --- */
+        #setup-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--primary); z-index: 200;
+            display: none; 
+            flex-direction: column; align-items: center; padding: 20px;
+            overflow-y: auto;
+        }
+
+        .setup-container { width: 100%; max-width: 500px; }
+        h1 { color: #f1c40f; text-align: center; margin-bottom: 20px; font-size: 1.5rem; }
+        
+        .player-config {
+            background: rgba(255,255,255,0.1);
+            margin-bottom: 10px; padding: 10px; border-radius: 8px;
+            display: flex; align-items: center; gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .player-name-input {
+            flex: 1; padding: 8px; border-radius: 4px; border: none; 
+            background: rgba(255,255,255,0.2); color: white; font-weight: bold;
+            min-width: 100px;
+        }
+        
+        .emoji-btn { 
+            font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 5px; 
+            position: relative; z-index: 5; 
+        }
+        
+        .bot-toggle {
+            background: #e74c3c; color: white; border: none; padding: 8px 15px;
+            border-radius: 20px; cursor: pointer; font-size: 0.8rem;
+        }
+        .bot-toggle.active { background: #27ae60; } 
+
+        .btn-large {
+            width: 100%; padding: 15px; background: #f1c40f; color: #2c3e50;
+            border: none; border-radius: 8px; font-size: 1.2rem; font-weight: bold; margin-top: 20px; cursor: pointer;
+            text-transform: uppercase; box-shadow: 0 4px 0 #c0392b;
+        }
+        .btn-large:active { transform: translateY(4px); box-shadow: none; }
+
+        /* --- JUEGO --- */
+        #game-screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 10px; }
+        
+        .fullscreen-btn {
+            position: absolute; top: 10px; right: 10px; z-index: 100;
+            background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.4);
+            color: white; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-size: 0.9rem;
+        }
+
+        /* TABLERO */
+        .board-wrapper {
+            position: relative;
+            width: 100%;
+            background-color: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        #board-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
+            display: none; 
+        }
+
+        /* ELEMENTOS FLOTANTES */
+        .floating-ui {
+            position: absolute;
+            z-index: 60; 
+            display: none; 
+            text-align: center;
+            pointer-events: none; 
+            transform: translate(-50%, -50%); 
+        }
+
+        .dice-display-float { 
+            font-size: 9rem; 
+            text-shadow: 0 10px 20px rgba(0,0,0,0.8); 
+            pointer-events: none; 
+            line-height: 1;
+        }
+        
+        .btn-roll-float {
+            pointer-events: auto; 
+            z-index: 70; 
+            padding: 15px 30px; font-size: 1.4rem; font-weight: bold;
+            border-radius: 30px; border: 2px solid white;
+            background: var(--accent); color: white; cursor: pointer;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.6);
+            transition: transform 0.1s;
+        }
+        .btn-roll-float:disabled { background: #7f8c8d; cursor: not-allowed; opacity: 0.7; }
+        .btn-roll-float:active { transform: translate(-50%, -48%) scale(0.95); }
+
+        /* FICHAS */
+        .token {
+            width: 5%; height: 5%;
+            position: absolute;
+            font-size: 2.2rem;
+            text-align: center;
+            line-height: 100%;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 10;
+            display: none;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+        }
+        
+        .token.frozen { transition: none !important; }
+        .token.finished { opacity: 0.4; filter: grayscale(100%); }
+
+        .bottom-panel { display: none !important; } 
+        
+        /* MODAL */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92); z-index: 400;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .modal-overlay.show { opacity: 1; pointer-events: all; }
+        .modal-content {
+            background: white; color: #333; padding: 25px; border-radius: 12px;
+            width: 90%; max-width: 450px; text-align: center;
+            max-height: 85vh; overflow-y: auto;
+            box-shadow: 0 0 25px rgba(0,0,0,0.5);
+            text-transform: uppercase;
+        }
+        .modal-title { color: var(--accent); margin-bottom: 15px; font-size: 1.6rem; }
+        .modal-text { font-size: 1.1rem; line-height: 1.6; margin-bottom: 20px; text-align: left; white-space: pre-line; }
+        
+        .modal-btn {
+            background: var(--accent); color: white; border: none;
+            padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 1.1rem; font-weight: bold;
+        }
+
+        .rankings-list { text-align: left; margin: 20px 0; }
+        .rank-item { 
+            padding: 12px; margin-bottom: 8px; background: #f8f9fa; 
+            border-radius: 8px; display: flex; justify-content: space-between; align-items: center;
+            font-weight: bold; font-size: 1.1rem;
+        }
+        .rank-1 { background: #ffd700; color: #333; border: 2px solid #e67e22; } 
+        .rank-2 { background: #e0e0e0; color: #333; border: 2px solid #bdc3c7; } 
+        .rank-3 { background: #cd7f32; color: #333; border: 2px solid #a0522d; } 
+        .rank-loser { background: #fff; color: #333; border: 1px solid #ccc; } 
+
+        #fileInput { display: none; }
+        
+        .placeholder-text {
+            color: #ccc; text-align: center; padding: 50px;
+            cursor: pointer; border: 2px dashed #555; margin: 20px;
+        }
+
+        .emoji-grid { 
+            display: none; 
+            position: absolute; 
+            background: #fff; 
+            border-radius: 8px; 
+            padding: 10px; 
+            z-index: 1000; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 8px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5); 
+            border: 2px solid #333;
+        }
+        .emoji-grid span { cursor: pointer; font-size: 1.8rem; text-align: center; padding: 5px; border-radius: 4px; }
+        .emoji-grid span:hover { background: #eee; }
+
+    </style>
+</head>
+<body>
+
+    <!-- 1. PANTALLA DE INICIO (LOGO) -->
+    <div id="start-screen">
+        <!-- Busca automáticamente logo.png. Si falla, muestra texto -->
+        <img src="logo.png" alt="LOGO" class="logo-img" onerror="this.style.display='none'; document.getElementById('logo-text').style.display='block';">
+        
+        <h2 id="logo-text" style="display:none; color:#f1c40f; margin-bottom:20px;">MI JUEGO</h2>
+
+        <button class="btn-large" onclick="goToSetup()">JUGAR</button>
+    </div>
+
+    <!-- 2. PANTALLA DE CONFIGURACIÓN -->
+    <div id="setup-screen">
+        <h1>CONFIGURACIÓN</h1>
+        <div class="setup-container" id="players-setup"></div>
+        
+        <div style="margin-top: 20px; text-align: center;">
+            <label style="display:block; margin-bottom: 5px;">JUGADORES:</label>
+            <select id="player-count" class="player-select" style="width: 100%; text-align: center; padding: 10px; border-radius: 4px; border:none; background:white;" onchange="setup.renderPlayers()">
+                <option value="2">2 JUGADORES</option>
+                <option value="3">3 JUGADORES</option>
+                <option value="4">4 JUGADORES</option>
+                <option value="5">5 JUGADORES</option>
+                <option value="6">6 JUGADORES</option>
+            </select>
+        </div>
+
+        <button class="btn-large" onclick="game.startFromSetup()">¡COMENZAR!</button>
+    </div>
+
+    <!-- 3. PANTALLA DE JUEGO -->
+    <div id="game-screen">
+        <button class="fullscreen-btn" onclick="toggleFullScreen()">⛶ PANTALLA COMPLETA</button>
+
+        <!-- TABLERO -->
+        <div class="board-wrapper" id="board-wrapper">
+            <div class="placeholder-text" id="placeholder" onclick="document.getElementById('fileInput').click()">
+                📷 CARGAR DIBUJO AQUÍ
+            </div>
+            <!-- Busca automáticamente tablero.png -->
+            <img id="board-image" src="tablero.png" alt="Tablero" onload="game.handleAutoLoad(this)">
+            
+            <div id="floating-dice" class="floating-ui">
+                <div class="dice-display-float" id="dice-val">🎲</div>
+            </div>
+            <div id="floating-btn" class="floating-ui">
+                <button class="btn-roll-float" id="roll-btn" onclick="game.humanRoll()">TIRAR</button>
+            </div>
+
+            <div id="tokens-container"></div>
+        </div>
+
+        <div class="bottom-panel">
+            <div class="players-scroll" id="players-list"></div>
+            <div class="log-area" id="game-log"></div>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+    </div>
+
+    <!-- MODAL RESULTADOS -->
+    <div class="modal-overlay" id="results-modal">
+        <div class="modal-content">
+            <h2 class="modal-title">🏆 RESULTADOS FINALES</h2>
+            <div id="rankings-container" class="rankings-list"></div>
+            <button class="modal-btn" onclick="location.reload()">JUGAR DE NUEVO</button>
+        </div>
+    </div>
+    
+    <!-- MODAL EVENTOS -->
+    <div class="modal-overlay" id="event-modal">
+        <div class="modal-content">
+            <h2 class="modal-title" id="event-title">¡EVENTO!</h2>
+            <p class="modal-text" id="event-msg">TEXTO</p>
+            <button class="modal-btn" id="event-continue-btn">CONTINUAR</button>
+        </div>
+    </div>
+
+    <!-- EMOJI PICKER -->
+    <div id="emoji-picker" class="emoji-grid"></div>
+
+    <script>
+        // --- SISTEMA DE SONIDO ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const majorScale = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25];
+        
+        const sfx = {
+            playTone: (freq, type, duration, vol = 0.1) => {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            },
+            move: () => {
+                const note = majorScale[Math.floor(Math.random() * majorScale.length)];
+                sfx.playTone(note, 'sine', 0.15, 0.1); 
+            },
+            dice: () => {
+                for(let i=0; i<8; i++) {
+                    setTimeout(() => {
+                        sfx.playTone(150 + Math.random()*100, 'square', 0.05, 0.05);
+                    }, i * 60);
+                }
+            },
+            prize: () => {
+                sfx.playTone(523.25, 'triangle', 0.3, 0.1); 
+                setTimeout(() => sfx.playTone(659.25, 'triangle', 0.3, 0.1), 50); 
+                setTimeout(() => sfx.playTone(783.99, 'triangle', 0.4, 0.1), 100); 
+            },
+            punish: () => {
+                sfx.playTone(100, 'sawtooth', 0.5, 0.2); 
+                sfx.playTone(95, 'sawtooth', 0.5, 0.2);
+            },
+            win: () => {
+                const winNotes = [523.25, 659.25, 783.99, 1046.50]; 
+                winNotes.forEach((note, i) => {
+                    setTimeout(() => sfx.playTone(note, 'triangle', 0.4, 0.2), i * 100);
+                });
+            }
+        };
+
+        const emojis = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🤖", "👽", "👻", "💀", "👾"];
+
+        const boardConfig = {
+            coordinates: [
+                { x: 37.9, y: 81.3 }, 
+                { x: 45.3, y: 81.5 }, { x: 52.3, y: 81.3 }, { x: 61.4, y: 83.6 }, { x: 71.7, y: 82.5 }, 
+                { x: 76.8, y: 83.2 }, { x: 84.5, y: 82.2 }, { x: 90.4, y: 83.6 }, 
+                { x: 90.1, y: 77.3 }, { x: 89.6, y: 71.7 }, { x: 89.4, y: 67 }, { x: 88.5, y: 61.2 }, { x: 89.1, y: 55.3 }, 
+                { x: 83.3, y: 56.5 }, { x: 75.6, y: 57.9 }, { x: 71.3, y: 57.7 }, { x: 67.1, y: 52 }, 
+                { x: 62, y: 48.3 }, { x: 57.5, y: 46.2 }, { x: 55.2, y: 46.2 }, { x: 50.2, y: 46.9 }, 
+                { x: 43.9, y: 48.3 }, { x: 39.8, y: 49.5 }, { x: 35, y: 50.2 }, { x: 36.8, y: 61.2 }, 
+                { x: 33, y: 69.1 }, { x: 29.2, y: 67.5 }, { x: 25.2, y: 72.2 }, { x: 23.2, y: 78 }, { x: 18.7, y: 82 }, 
+                { x: 13.9, y: 80.4 }, { x: 8.9, y: 75.2 }, 
+                { x: 9.8, y: 69.1 }, { x: 13.2, y: 65.4 }, { x: 13.9, y: 58.6 }, { x: 17.9, y: 60.7 }, 
+                { x: 22.2, y: 59.5 }, { x: 21.9, y: 53.5 }, 
+                { x: 25.2, y: 47.1 }, { x: 29.5, y: 42.7 }, { x: 33.8, y: 40.3 }, { x: 36.8, y: 35.7 }, 
+                { x: 41.8, y: 35.2 }, 
+                { x: 49.2, y: 34 }, { x: 54, y: 33.1 }, { x: 55.4, y: 28.2 }, 
+                { x: 53.5, y: 22.3 }, { x: 55, y: 13 }, 
+                { x: 47.2, y: 15.5 }, { x: 41.4, y: 17.9 }, { x: 35.6, y: 18.1 }, 
+                { x: 34.6, y: 26.5 }, 
+                { x: 29.8, y: 26.3 }, { x: 27.2, y: 32.2 }, 
+                { x: 19.7, y: 39.2 }, { x: 15.7, y: 48.8 }, { x: 11.4, y: 46.7 }, 
+                { x: 5.9, y: 49.9 }, 
+                { x: 3.6, y: 44.8 }, { x: 3.6, y: 37.5 }, { x: 4.1, y: 30 }, 
+                { x: 8.1, y: 24.4 }, { x: 13.4, y: 23.7 }, 
+                { x: 14.2, y: 17.6 }, { x: 18.7, y: 20.7 }, { x: 23.7, y: 23 }, { x: 25.2, y: 17.9 } 
+            ]
+        };
+
+        const uiConfig = {
+            dice: { x: 73.9, y: 27.9 },
+            button: { x: 74.3, y: 39.6 }
+        };
+
+        const rules = {
+            4: { msg: "EN LA ZONA DEL GOLF, UN JUGADOR PERDIÓ SU PELOTA Y TE PIDE AYUDA PARA ALCANZÁRSELA. 👉 RETROCEDÉS 2 CASILLEROS.", type: "move", value: -2 },
+            7: { msg: "TE ENCONTRÁS CON TUS PRIMOS TOMANDO UN HELADO EN LA PLAYA. TE REFRESCÁS Y SEGUÍS CON MÁS ENERGÍA. 👉 AVANZÁS 3 CASILLEROS.", type: "move", value: 3 },
+            12: { msg: "HAY MILANESAS EN LO DE LA AIA. COMÉS TODO Y QUEDÁS LLENO DE ENERGIA. 👉 TIRÁS EL DADO DE NUEVO", type: "extra_turn" },
+            16: { msg: "ESTÁS EN LA ZONA DONDE SIEMPRE SE TIREN LOS DADOS. EL PISO TIEMBLA Y TE MAREA. 👉 PERDÉS UN TURNO.", type: "jail", turns: 1 },
+            20: { msg: "JUSTO EL ABUELO ESTÁ PASANDO! TE ACERCA UN TRAMO DEL CAMINO EN SU CAMIONETA. 👉 AVANZÁS 5 CASILLEROS.", type: "move", value: 5 },
+            23: { msg: "TE DISTRAJISTE JUGANDO Y PASÓ MUCHO TIEMPO. 👉 PERDÉS UN TURNO.", type: "jail", turns: 1 },
+            24: { msg: "UN CONITO DULCE TE PONE DE BUEN HUMOR. 👉 AVANZÁS 4 CASILLEROS", type: "move", value: 4 },
+            31: { msg: "DE REPENTE VIENE UN VIENTO Y TE VUELA TU GORRA DE LA SUERTE, VUELVE POR ELLA. 👉 RETROCEDÉS 4 CASILLEROS.", type: "move", value: -4 },
+            37: { msg: "TE CRUZÁS CON PUPA, EL PERRO SALCHICHA. ESE ENCUENTRO TE ANIMA. 👉 AVANZÁS 3 CASILLEROS.", type: "move", value: 3 },
+            42: { msg: "EN LA VETERINARIA DE LA TÍA CELE ENCONTRÁS A UNA SEÑORA GRITANDO “¡PUPA, PUPA!”. TENÉS QUE ACOMPAÑARLA HASTA DONDE ESTABA EL PERRITO. 👉 VOLVÉS AL CASILLERO 37. SOLO AFECTA UNA VEZ SOLA POR JUGADOR", type: "move", value: -5, once: true },
+            43: { msg: "TE FUE MUY BIEN EN EL COLEGIO Y GANASTE UNA EXCURSIÓN A LA PIÑA. 👉 AVANZÁS DIRECTO AL CASILLERO 47 (PASEO DE LA PIÑA).", type: "move", value: 4 },
+            51: { msg: "SE TE DESATARON LOS CORDONES Y TENÉS QUE FRENARTE A ATARLOS. 👉 PERDÉS UN TURNO.", type: "jail", turns: 1 },
+            54: { msg: "OH NO! EN EL PASEO DE LA PIÑA SE TE CAYÓ TU LIBRO FAVORITO: LAS PRIMOAVENTURAS. NO PODÉS SEGUIR SIN ÉL. 👉 TENÉS QUE VOLVER A BUSCARLO AL CASILLERO 47. SOLO AFECTA UNA VEZ SOLA POR JUGADOR.", type: "move", value: -7, once: true },
+            57: { msg: "SALÍS FUERTE Y CONTENTO DE NATACIÓN. 👉 AVANZÁS 4 CASILLEROS.", type: "move", value: 4 },
+            63: { msg: "DE LA EMOCIÓN SE TE CAYÓ LA ENTRADA DEL CIRCO. 👉 VOLVÉS AL CASILLERO 60 A BUSCARLA. SI YA TENÍAS LA ENTRADA Y VOLVÉS A CAER ACÁ, NO PASA NADA.", type: "move", value: -3, once: true }
+        };
+
+        // CAMBIO DE PANTALLAS
+        function goToSetup() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('setup-screen').style.display = 'flex';
+        }
+
+        const setup = {
+            players: [],
+            init: () => {
+                setup.renderPlayers();
+                setup.createEmojiPicker();
+            },
+            renderPlayers: () => {
+                const count = parseInt(document.getElementById('player-count').value);
+                const container = document.getElementById('players-setup');
+                container.innerHTML = '';
+                while(setup.players.length < count) {
+                    setup.players.push({ name: `JUGADOR ${setup.players.length + 1}`, emoji: emojis[setup.players.length], isBot: false });
+                }
+                setup.players = setup.players.slice(0, count);
+                setup.players.forEach((p, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'player-config';
+                    div.innerHTML = `
+                        <input type="text" class="player-name-input" value="${p.name}" onchange="setup.updateName(${i}, this.value)">
+                        <button class="emoji-btn" onclick="setup.openEmojiPicker(${i}, this)">${p.emoji}</button>
+                        <button class="bot-toggle ${p.isBot ? 'active' : ''}" onclick="setup.toggleBot(${i}, this)">
+                            ${p.isBot ? '🤖 BOT' : 'HUMANO'}
+                        </button>
+                    `;
+                    container.appendChild(div);
+                });
+            },
+            updateName: (index, newName) => {
+                setup.players[index].name = newName.toUpperCase();
+            },
+            toggleBot: (index, btn) => {
+                setup.players[index].isBot = !setup.players[index].isBot;
+                setup.renderPlayers();
+            },
+            openEmojiPicker: (index, btn) => {
+                const picker = document.getElementById('emoji-picker');
+                picker.style.display = 'grid';
+                picker.dataset.targetIndex = index;
+                const rect = btn.getBoundingClientRect();
+                picker.style.top = (rect.bottom + window.scrollY) + 'px';
+                picker.style.left = (rect.left + window.scrollX) + 'px';
+            },
+            selectEmoji: (emoji) => {
+                const index = document.getElementById('emoji-picker').dataset.targetIndex;
+                setup.players[index].emoji = emoji;
+                document.getElementById('emoji-picker').style.display = 'none';
+                setup.renderPlayers();
+            },
+            createEmojiPicker: () => {
+                const picker = document.getElementById('emoji-picker');
+                emojis.forEach(e => {
+                    const span = document.createElement('span');
+                    span.innerText = e;
+                    span.onclick = () => setup.selectEmoji(e);
+                    picker.appendChild(span);
+                });
+                document.addEventListener('click', (e) => {
+                    if(!e.target.closest('.emoji-btn') && !e.target.closest('#emoji-picker')) {
+                        picker.style.display = 'none';
+                    }
+                });
+            }
+        };
+
+        class Game {
+            constructor() {
+                this.players = [];
+                this.currentPlayerIndex = 0;
+                this.isAnimating = false;
+                this.maxPos = 66;
+                this.hasLoadedImage = false;
+                this.finishedCount = 0;
+            }
+
+            startFromSetup() {
+                this.players = setup.players.map((p, i) => ({
+                    id: i,
+                    name: p.name,
+                    emoji: p.emoji,
+                    isBot: p.isBot,
+                    pos: 0,
+                    waitTurns: 0,
+                    visitedRules: [],
+                    element: null,
+                    offsetX: (Math.random() - 0.5) * 2,
+                    offsetY: (Math.random() - 0.5) * 2,
+                    finishOrder: null
+                }));
+
+                const tokensContainer = document.getElementById('tokens-container');
+                tokensContainer.innerHTML = '';
+                this.players.forEach(p => {
+                    const el = document.createElement('div');
+                    el.className = 'token';
+                    el.innerText = p.emoji;
+                    tokensContainer.appendChild(el);
+                    p.element = el;
+                });
+
+                document.getElementById('setup-screen').style.display = 'none';
+                document.getElementById('game-screen').style.display = 'flex';
+
+                if(this.hasLoadedImage) {
+                    this.updateTokensUI();
+                    this.checkBotTurn();
+                }
+            }
+
+            // Carga automática al iniciar si existe el archivo
+            handleAutoLoad(img) {
+                if (img.complete && img.naturalHeight !== 0) {
+                    this.loadImageLogic(img);
+                }
+            }
+
+            loadImage() {
+                const file = document.getElementById('fileInput').files[0];
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.getElementById('board-image');
+                    img.src = e.target.result;
+                    img.onload = () => this.loadImageLogic(img);
+                };
+                reader.readAsDataURL(file);
+            }
+
+            loadImageLogic(img) {
+                const wrapper = document.getElementById('board-wrapper');
+                wrapper.style.aspectRatio = `${img.naturalWidth / img.naturalHeight}`;
+                img.style.display = 'block';
+                document.getElementById('placeholder').style.display = 'none';
+                const fd = document.getElementById('floating-dice');
+                const fb = document.getElementById('floating-btn');
+                fd.style.display = 'block';
+                fd.style.left = uiConfig.dice.x + '%';
+                fd.style.top = uiConfig.dice.y + '%';
+                fb.style.display = 'block';
+                fb.style.left = uiConfig.button.x + '%';
+                fb.style.top = uiConfig.button.y + '%';
+                this.hasLoadedImage = true;
+                this.updateTokensUI();
+                document.querySelectorAll('.token').forEach(t => t.style.display = 'block');
+                if(!this.players.length) setup.init(); // Iniciar setup si no se hizo
+                else this.checkBotTurn();
+            }
+
+            async humanRoll() {
+                if(this.isAnimating) return;
+                const player = this.players[this.currentPlayerIndex];
+                if(player.isBot || player.finishOrder !== null) return;
+                await this.executeTurn(player);
+            }
+
+            async checkBotTurn() {
+                if(this.isAnimating) return;
+                const player = this.players[this.currentPlayerIndex];
+                if(player.finishOrder !== null) {
+                    this.nextTurn();
+                    return;
+                }
+                if(player.isBot) {
+                    document.getElementById('roll-btn').disabled = true;
+                    await this.wait(1500);
+                    await this.executeTurn(player);
+                } else {
+                    document.getElementById('roll-btn').disabled = false;
+                    document.getElementById('roll-btn').innerText = "TIRAR";
+                }
+            }
+
+            async executeTurn(player) {
+                this.isAnimating = true;
+                if (player.waitTurns > 0) {
+                    await this.showEventModal("TURNO PERDIDO", `${player.name} CUMPLE CASTIGO (${player.waitTurns} RESTANTES).`);
+                    player.waitTurns--;
+                    this.nextTurn();
+                    return;
+                }
+                const diceResult = Math.floor(Math.random() * 6) + 1;
+                this.animateDice(diceResult); 
+                await this.wait(600);
+                let newPos = player.pos + diceResult;
+                if (newPos > this.maxPos) {
+                    const excess = newPos - this.maxPos;
+                    newPos = this.maxPos - excess;
+                }
+                await this.movePlayerStepByStep(player, newPos);
+                const extraTurn = await this.checkSquareRules(player, newPos);
+                if (player.pos === this.maxPos) {
+                    this.handleFinish(player);
+                } else {
+                    if (!extraTurn) {
+                        this.nextTurn();
+                    } else {
+                        this.isAnimating = false;
+                        await this.showEventModal("¡TIRÁS DE NUEVO!", `¡${player.name} TIENE OTRO TURNO!`);
+                        this.checkBotTurn(); 
+                    }
+                }
+            }
+
+            handleFinish(player) {
+                this.finishedCount++;
+                player.finishOrder = this.finishedCount;
+                player.element.classList.add('finished');
+                sfx.win();
+                let gameOver = false;
+                if (this.players.length === 2) {
+                    gameOver = true;
+                } else {
+                    if (this.finishedCount >= this.players.length - 1) {
+                        gameOver = true;
+                    }
+                }
+                let message = "";
+                if(player.finishOrder === 1) message = "🥇 ¡LLEGÓ 1ERO!";
+                else if(player.finishOrder === 2) message = "🥈 ¡LLEGÓ 2DO!";
+                else if(player.finishOrder === 3) message = "🥉 ¡LLEGÓ 3ERO!";
+                else message = `¡LLEGÓ ${player.finishOrder}º!`;
+                alert(`${player.name} ${message}`); 
+                if (gameOver) {
+                    this.showResults();
+                } else {
+                    this.nextTurn();
+                }
+                this.isAnimating = false;
+            }
+
+            showResults() {
+                const maxRank = this.players.length;
+                const playersWithRank = this.players.map(p => ({
+                    ...p,
+                    finishOrder: p.finishOrder || maxRank 
+                }));
+                const sortedPlayers = playersWithRank.sort((a, b) => a.finishOrder - b.finishOrder);
+                const container = document.getElementById('rankings-container');
+                container.innerHTML = '';
+                sortedPlayers.forEach((p) => {
+                    const div = document.createElement('div');
+                    let rankClass = 'rank-loser';
+                    if (p.finishOrder === 1) rankClass = 'rank-1';
+                    else if (p.finishOrder === 2) rankClass = 'rank-2';
+                    else if (p.finishOrder === 3) rankClass = 'rank-3';
+                    div.className = `rank-item ${rankClass}`;
+                    div.innerHTML = `
+                        <span>${p.finishOrder}. ${p.name} ${p.emoji}</span>
+                        <span>${p.finishOrder}º LUGAR</span>
+                    `;
+                    container.appendChild(div);
+                });
+                document.getElementById('results-modal').classList.add('show');
+            }
+
+            async movePlayerStepByStep(player, targetPos) {
+                const direction = targetPos > player.pos ? 1 : -1;
+                player.element.classList.remove('frozen');
+                this.players.forEach(p => {
+                    if(p.id !== player.id) p.element.classList.add('frozen');
+                });
+                while (player.pos !== targetPos) {
+                    player.pos += direction;
+                    this.updateTokensUI();
+                    sfx.move();
+                    await this.wait(300);
+                }
+                this.players.forEach(p => p.element.classList.remove('frozen'));
+            }
+
+            async checkSquareRules(player, pos) {
+                if (rules[pos]) {
+                    const rule = rules[pos];
+                    if (rule.once) {
+                        if (player.visitedRules.includes(pos)) {
+                            await this.wait(500);
+                            await this.showEventModal("¡LIBRE!", `YA HABÍAS PASADO POR LA CASILLA ${pos}. ¡NO PASA NADA!`);
+                            return false;
+                        } else {
+                            player.visitedRules.push(pos);
+                        }
+                    }
+                    await this.wait(500);
+                    if (rule.type === 'jail' || (rule.type === 'move' && rule.value < 0)) {
+                        sfx.punish();
+                    } else {
+                        sfx.prize();
+                    }
+                    const parts = rule.msg.split('👉');
+                    const displayText = parts.join('\n\n'); 
+                    await this.showEventModal("CASILLA " + pos, displayText);
+                    if (rule.type === 'move') {
+                        const target = pos + rule.value;
+                        const safeTarget = Math.max(0, Math.min(target, this.maxPos));
+                        await this.movePlayerStepByStep(player, safeTarget);
+                        return false;
+                    } else if (rule.type === 'jail') {
+                        player.waitTurns = rule.turns;
+                        return false;
+                    } else if (rule.type === 'extra_turn') {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            showEventModal(title, msg) {
+                return new Promise(resolve => {
+                    const modal = document.getElementById('event-modal');
+                    document.getElementById('event-title').innerText = title;
+                    document.getElementById('event-msg').innerText = msg;
+                    const btn = document.getElementById('event-continue-btn');
+                    const newBtn = btn.cloneNode(true);
+                    btn.parentNode.replaceChild(newBtn, btn);
+                    newBtn.addEventListener('click', () => {
+                        modal.classList.remove('show');
+                        resolve();
+                    });
+                    modal.classList.add('show');
+                });
+            }
+
+            updateTokensUI() {
+                this.players.forEach(p => {
+                    const coords = boardConfig.coordinates[p.pos];
+                    if (coords && p.element) {
+                        p.element.style.left = `calc(${coords.x}% + ${p.offsetX}%)`;
+                        p.element.style.top = `calc(${coords.y}% + ${p.offsetY}%)`;
+                    }
+                });
+            }
+
+            nextTurn() {
+                this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
+                this.isAnimating = false;
+                this.checkBotTurn();
+            }
+
+            animateDice(value) {
+                sfx.dice(); // SONIDO GIRAR DADO
+                const diceDisplay = document.getElementById('dice-val');
+                diceDisplay.innerText = '🎲';
+                let count = 0;
+                const interval = setInterval(() => {
+                    diceDisplay.innerText = ['⚀','⚁','⚂','⚃','⚄','⚅'][Math.floor(Math.random()*6)];
+                    count++;
+                    if(count > 10) {
+                        clearInterval(interval);
+                        diceDisplay.innerText = ['⚀','⚁','⚂','⚃','⚄','⚅'][value-1];
+                    }
+                }, 50);
+            }
+
+            wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+        }
+
+        const game = new Game();
+        setup.init();
+        document.getElementById('fileInput').addEventListener('change', () => game.loadImage());
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+    </script>
+</body>
+</html>
