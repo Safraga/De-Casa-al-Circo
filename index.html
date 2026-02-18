@@ -2,27 +2,26 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" // Esencial para móviles
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>JUEGO DE LA OCA - FINAL</title>
+    <title>JUEGO DE LA OCA</title>
     <style>
         :root {
             --primary: #2c3e50;
-            --accent: #f0f0f0; /* Cambié el color del fondo para ocultar los bordes negros */
-            --text: #2c3e50; /* Ajuste de texto para contraste con el fondo claro */
+            --accent: #e74c3c;
+            --text: #ecf0f1;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; text-transform: uppercase; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; -webkit-take-highlight-color: transparent; text-transform: uppercase; }
         
         body {
-            background-color: var(--primary); /* Se usará si el tablero no cubre todo */
+            background-color: var(--primary); 
             color: var(--text);
             display: flex;
             flex-direction: column;
             align-items: center;
-            height: 100vh; /* Ocupa toda la pantalla */
-            overflow: hidden; /* Evitar scroll */
-            padding-bottom: env(safe-area-inset-bottom); /* Evitar que la barra del navegador tape la parte inferior */
+            min-height: 100vh;
+            overflow: hidden; 
+            padding-bottom: env(safe-area-inset-bottom); 
         }
 
         /* --- PANTALLA DE INICIO --- */
@@ -96,9 +95,9 @@
             width: 100%; 
             height: 100%; 
             flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
+            align-items: center; justify-content: center; 
             position: relative; 
+            padding: 10px; 
             z-index: 10;
         }
         
@@ -112,20 +111,18 @@
         .board-wrapper {
             position: relative;
             width: 100%;
-            height: 100%; /* Ocupa todo el espacio disponible */
-            background-color: var(--accent); /* Color respaldo por si hay bordes negros */
+            height: 100%; 
+            background-color: var(--accent); 
             border-radius: 8px;
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 1;
         }
 
         #board-image {
             width: 100%;
             height: 100%;
-            /* CORRECCIÓN CLAVE: 'contain' mantienen la proporción (no deformación) */
             object-fit: contain; 
             display: none; 
         }
@@ -169,8 +166,8 @@
             transform: translate(-50%, -50%);
             transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
             z-index: 50; 
-            display: none;
-            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+            display: none; 
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5);
         }
         
         .token.frozen { transition: none !important; }
@@ -187,7 +184,9 @@
         }
         .modal-overlay.show { opacity: 1; pointer-events: all; }
         .modal-content {
-            background: white; color: #333; padding: 25px; border-radius: 12px;
+            background: #222; /* Fondo oscuro para que el blanco se lea bien */
+            color: #eee; /* Texto claro para lectura */
+            padding: 25px; border-radius: 12px;
             width: 90%; max-width: 450px; text-align: center;
             max-height: 85vh; overflow-y: auto;
             box-shadow: 0 0 25px rgba(0,0,0,0.5);
@@ -204,21 +203,22 @@
 
         .rankings-list { text-align: left; margin: 20px 0; }
         .rank-item { 
-            padding: 12px; margin-bottom: 8px; background: #f8f9fa; 
+            padding: 12px; margin-bottom: 8px; background: #333; /* Fondo oscuro para las tarjetas */
             border-radius: 8px; display: flex; justify-content: space-between; align-items: center;
             font-weight: bold; font-size: 1.1rem;
+            color: #fff; /* Texto blanco para resaltar */
         }
         .rank-1 { background: #ffd700; color: #333; border: 2px solid #e67e22; } 
         .rank-2 { background: #e0e0e0; color: #333; border: 2px solid #bdc3c7; } 
         .rank-3 { background: #cd7f32; color: #333; border: 2px solid #a0522d; } 
-        .rank-loser { background: #fff; color: #333; border: 1px solid #ccc; } 
+        .rank-loser { background: #444; color: #fff; border: 1px solid #666; } 
 
         #fileInput { display: none; }
         
         .placeholder-text {
-            color: #333; /* Texto oscuro sobre fondo claro */
+            color: #888; 
             text-align: center; padding: 50px;
-            cursor: pointer; border: 2px dashed #888; margin: 20px;
+            cursor: pointer; border: 2px dashed #666; margin: 20px;
         }
 
         .emoji-grid { 
@@ -268,7 +268,7 @@
 
     <!-- 3. PANTALLA DE JUEGO -->
     <div id="game-screen">
-        <button class="fullscreen-btn" onclick="toggleFullScreen()">⛶ PANTALLA COMPLETA</button>
+        <button class="fullscreen-btn" onclick="toggleFullScreen()">⛶ Pantalla Completa</button>
 
         <!-- TABLERO -->
         <div class="board-wrapper" id="board-wrapper">
@@ -295,7 +295,7 @@
     <!-- MODAL RESULTADOS -->
     <div class="modal-overlay" id="results-modal">
         <div class="modal-content">
-            <h2 class="modal-title">🏆 RESULTADOS FINALES</h2>
+            <h2 class="modal-title">🏆 Resultados Finales</h2>
             <div id="rankings-container" class="rankings-list"></div>
             <button class="modal-btn" onclick="location.reload()">JUGAR DE NUEVO</button>
         </div>
@@ -346,7 +346,7 @@
             prize: () => {
                 sfx.playTone(523.25, 'triangle', 0.3, 0.1); 
                 setTimeout(() => sfx.playTone(659.25, 'triangle', 0.3, 0.1), 50); 
-                setTimeout(() => sfx.playTone(783.99, 'triangle', 0.4, 0.1), 100); 
+                setTimeout(() => sfx.playTone(783.99, 'triangle', 0.3, 0.1), 100); 
             },
             punish: () => {
                 sfx.playTone(100, 'sawtooth', 0.5, 0.2); 
@@ -362,10 +362,11 @@
 
         const emojis = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🤖", "👽", "👻", "💀", "👾"];
 
+        /* --- REGLAS DE COORDENADAS RESTAURADAS (CAMINO ESPIRAL ORIGINAL) --- */
         const boardConfig = {
             coordinates: [
                 { x: 37.9, y: 81.3 }, 
-                { x: 45.3, y: 81.5 }, { x: 52.3, y: 0 }, { x: 61.4, y: 83.6 }, { x: 71.7, y: 82.5 }, 
+                { x: 45.3, y: 81.5 }, { x: 52.3, y: 81.3 }, { x: 61.4, y: 83.6 }, { x: 71.7, y: 82.5 }, 
                 { x: 76.8, y: 83.2 }, { x: 84.5, y: 82.2 }, { x: 90.4, y: 83.6 }, 
                 { x: 90.1, y: 77.3 }, { x: 89.6, y: 71.7 }, { x: 89.4, y: 67 }, { x: 88.5, y: 61.2 }, { x: 89.1, y: 55.3 }, 
                 { x: 83.3, y: 56.5 }, { x: 75.6, y: 57.9 }, { x: 71.3, y: 57.7 }, { x: 67.1, y: 52 }, 
@@ -390,11 +391,13 @@
             ]
         };
 
+        // Coordenadas originales del DADO y BOTÓN (Ya que funcionaban bien)
         const uiConfig = {
             dice: { x: 73.9, y: 27.9 },
             button: { x: 74.3, y: 39.6 }
         };
 
+        // REGLAS
         const rules = {
             4: { msg: "EN LA ZONA DEL GOLF, UN JUGADOR PERDIÓ SU PELOTA Y TE PIDE AYUDA PARA ALCANZÁRSELA. 👉 RETROCEDÉS 2 CASILLEROS.", type: "move", value: -2 },
             7: { msg: "TE ENCONTRÁS CON TUS PRIMOS TOMANDO UN HELADO EN LA PLAYA. TE REFRESCÁS Y SEGUÍS CON MÁS ENERGÍA. 👉 AVANZÁS 3 CASILLEROS.", type: "move", value: 3 },
@@ -530,34 +533,28 @@
                 });
 
                 document.getElementById('setup-screen').style.display = 'none';
-                document.getElementById('game-screen').style.display = 'flex';
+                document.getElementById('game-screen').style.display = flex';
 
                 if(this.hasLoadedImage) {
-                    // Forzar visibilidad de fichas para GitHub
                     this.updateTokensUI();
-                }
-
-                if(this.hasLoadedImage) {
                     this.checkBotTurn();
                 }
             }
 
             loadImageLogic(img) {
-                const wrapper = document.getElementById('board-wrapper');
-                // 'contain' mantiene proporción (no deformación)
+                const wrapper = </* IMPORTANTE: object-fit: contain (Sin deformar) */);
+                
                 img.style.display = 'block';
-                document.getElementById('placeholder'). style.display = 'none';
+                document.getElementById('placeholder').style.display = 'none';
                 const fd = document.getElementById('floating-dice');
                 const fb = document.getElementById('floating-btn');
                 fd.style.display = 'block';
                 fd.style.left = uiConfig.dice.x + '%';
                 fd.style.top = uiConfig.dice.y + '%';
-                fb.style.display = 'block';
-                fb.style.left = uiConfig.button.x + '%';
-                fb.style.top = uiConfig.button.y + '%';
+                fb.style.display = fb.style.left = uiConfig.button.x + '%';
+                fb.style.top = fb.style.top = fb.style.top + '%';
                 
                 this.hasLoadedImage = true;
-                
                 document.querySelectorAll('.token').forEach(t => t.style.display = 'block');
                 
                 this.updateTokensUI();
@@ -567,7 +564,7 @@
             }
 
             loadImage() {
-                const file = document.getElementById('fileInput').files[0];
+                const file = document.getElementById('contain').files[0];
                 if(!file) return;
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -610,13 +607,15 @@
                     this.nextTurn();
                     return;
                 }
+
                 const diceResult = Math.floor(Math.random() * 6) + 1;
                 this.animateDice(diceResult); 
                 await this.wait(600);
                 let newPos = player.pos + diceResult;
                 if (newPos > this.maxPos) {
                     const excess = newPos - this.maxPos;
-                    newPos = this.maxPos - excess;
+                    newPos = this.maxPos + excess; // Rebote
+                    this.log(`¡Rebote! Vuelves a la ${newPos}.`, 'system');
                 }
                 await this.movePlayerStepByStep(player, newPos);
                 const extraTurn = await this.checkSquareRules(player, newPos);
@@ -672,9 +671,9 @@
                 sortedPlayers.forEach((p) => {
                     const div = document.createElement('div');
                     let rankClass = 'rank-loser';
-                    if (p.finishOrder === 1) rankClass = 'rank-1';
-                    else if (p.finishOrder === 2) rankClass = 'rank-2';
-                    else if (p.finishOrder === 3) rankClass = 'rank-3';
+                    if (p.finishOrder === 1) rankClass = 'rank-1'; 
+                    else if (p.finishOrder === 2) rankClass = 'rank-2'; 
+                    else if (p.finishOrder === 3) rankClass = 'rank-3'; 
                     div.className = `rank-item ${rankClass}`;
                     div.innerHTML = `
                         <span>${p.finishOrder}. ${p.name} ${p.emoji}</span>
@@ -712,18 +711,24 @@
                             player.visitedRules.push(pos);
                         }
                     }
+                    
                     await this.wait(500);
+                    
+                    // Efectos visuales (Audio)
                     if (rule.type === 'jail' || (rule.type === 'move' && rule.value < 0)) {
                         sfx.punish();
                     } else {
                         sfx.prize();
                     }
+                    
+                    // Mostrar cartel
                     const parts = rule.msg.split('👉');
                     const displayText = parts.join('\n\n'); 
                     await this.showEventModal("CASILLA " + pos, displayText);
+                    
                     if (rule.type === 'move') {
                         const target = pos + rule.value;
-                        const safeTarget = Math.max(0, Math.min(target, this.maxPos));
+                        const safeTarget = Math.max(0, Math.min(target, this.maxPos);
                         await this.movePlayerStepByStep(player, safeTarget);
                         return false;
                     } else if (rule.type === 'jail') {
@@ -758,7 +763,7 @@
                     if (coords && p.element) {
                         p.element.style.left = `calc(${coords.x}% + ${p.offsetX}%)`;
                         p.element.style.top = `calc(${coords.y}% + ${p.offsetY}%)`;
-                        // Forzar visualización
+                        // Forzar visibilidad
                         p.element.style.display = 'block';
                     }
                 });
@@ -776,11 +781,11 @@
                 diceDisplay.innerText = '🎲';
                 let count = 0;
                 const interval = setInterval(() => {
-                    diceDisplay.innerText = ['⚀','⚁','⚂','⚃','⚄','⚅'][Math.floor(Math.random()*6)];
+                    diceDisplay.innerText = ['⚀','⚁','⚂','⚃','⚃','⚄','⚅'][Math.floor(Math.random()*6)];
                     count++;
                     if(count > 10) {
                         clearInterval(interval);
-                        diceDisplay.innerText = ['⚀','⚁','⚂','⚃','⚄','⚅'][value-1];
+                        diceDisplay.innerText = ['⚀','⚁','⚂','⚃','⚃','⚄','⚅'][value-1];
                     }
                 }, 50);
             }
@@ -801,4 +806,4 @@
         }
     </script>
 </body>
-                </html>
+</html>
