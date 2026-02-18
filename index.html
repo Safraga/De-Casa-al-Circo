@@ -2,26 +2,27 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" // Esencial para móviles
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>JUEGO DE LA OCA</title>
+    <title>JUEGO DE LA OCA - FINAL</title>
     <style>
         :root {
             --primary: #2c3e50;
-            --accent: #e74c3c;
-            --text: #ecf0f1;
+            --accent: #f0f0f0; /* Cambié el color del fondo para ocultar los bordes negros */
+            --text: #2c3e50; /* Ajuste de texto para contraste con el fondo claro */
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; text-transform: uppercase; }
         
         body {
-            background-color: var(--primary);
+            background-color: var(--primary); /* Se usará si el tablero no cubre todo */
             color: var(--text);
             display: flex;
             flex-direction: column;
             align-items: center;
-            height: 100vh; /* Ocupa toda la pantalla vertical */
-            overflow: hidden; /* Evita scroll */
-            padding-bottom: env(safe-area-inset-bottom); /* Ajuste para no tapar el borde inferior con la barra del navegador */
+            height: 100vh; /* Ocupa toda la pantalla */
+            overflow: hidden; /* Evitar scroll */
+            padding-bottom: env(safe-area-inset-bottom); /* Evitar que la barra del navegador tape la parte inferior */
         }
 
         /* --- PANTALLA DE INICIO --- */
@@ -93,13 +94,12 @@
         #game-screen { 
             display: none; 
             width: 100%; 
-            height: 100%; /* Ocupa todo el espacio disponible */
+            height: 100%; 
             flex-direction: column; 
             align-items: center; 
             justify-content: center; 
             position: relative; 
-            padding: 10px; 
-            z-index: 10; 
+            z-index: 10;
         }
         
         .fullscreen-btn {
@@ -112,22 +112,21 @@
         .board-wrapper {
             position: relative;
             width: 100%;
-            height: 100%; /* Se ajusta al contenedor */
-            background-color: #000;
+            height: 100%; /* Ocupa todo el espacio disponible */
+            background-color: var(--accent); /* Color respaldo por si hay bordes negros */
             border-radius: 8px;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 1;
         }
 
         #board-image {
             width: 100%;
             height: 100%;
-            /* CAMBIO CLAVE: 'fill' estira la imagen para que llene todo el espacio disponible */
-            object-fit: fill; 
+            /* CORRECCIÓN CLAVE: 'contain' mantienen la proporción (no deformación) */
+            object-fit: contain; 
             display: none; 
         }
 
@@ -155,16 +154,16 @@
             border-radius: 30px; border: 2px solid white;
             background: var(--accent); color: white; cursor: pointer;
             box-shadow: 0 6px 15px rgba(0,0,0,0.6);
-            transition: transform 0.1s;
+            transition: transform: 0.1s;
         }
         .btn-roll-float:disabled { background: #7f8c8d; cursor: not-allowed; opacity: 0.7; }
-        .btn-roll-float:active { transform: translate(-50%, -48%) scale(0.95); }
+        .btn-roll-float: active { transform: translate(-50%, -48%) scale(0.95); }
 
         /* FICHAS */
         .token {
-            width: 6%; height: 6%; /* Un poco más grandes para pantallas llenas */
+            width: 6%; height: 6%; 
             position: absolute;
-            font-size: 2.5rem; /* Emojis más grandes */
+            font-size: 2.5rem; 
             text-align: center;
             line-height: 100%;
             transform: translate(-50%, -50%);
@@ -217,8 +216,9 @@
         #fileInput { display: none; }
         
         .placeholder-text {
-            color: #ccc; text-align: center; padding: 50px;
-            cursor: pointer; border: 2px dashed #555; margin: 20px;
+            color: #333; /* Texto oscuro sobre fondo claro */
+            text-align: center; padding: 50px;
+            cursor: pointer; border: 2px dashed #888; margin: 20px;
         }
 
         .emoji-grid { 
@@ -288,7 +288,7 @@
         </div>
 
         <div class="bottom-panel">
-            <input type="file" id="fileInput" accept="image/*">
+            <input type="fileInput" id="fileInput" accept="image/*">
         </div>
     </div>
 
@@ -365,7 +365,7 @@
         const boardConfig = {
             coordinates: [
                 { x: 37.9, y: 81.3 }, 
-                { x: 45.3, y: 81.5 }, { x: 52.3, y: 81.3 }, { x: 61.4, y: 83.6 }, { x: 71.7, y: 82.5 }, 
+                { x: 45.3, y: 81.5 }, { x: 52.3, y: 0 }, { x: 61.4, y: 83.6 }, { x: 71.7, y: 82.5 }, 
                 { x: 76.8, y: 83.2 }, { x: 84.5, y: 82.2 }, { x: 90.4, y: 83.6 }, 
                 { x: 90.1, y: 77.3 }, { x: 89.6, y: 71.7 }, { x: 89.4, y: 67 }, { x: 88.5, y: 61.2 }, { x: 89.1, y: 55.3 }, 
                 { x: 83.3, y: 56.5 }, { x: 75.6, y: 57.9 }, { x: 71.3, y: 57.7 }, { x: 67.1, y: 52 }, 
@@ -532,11 +532,8 @@
                 document.getElementById('setup-screen').style.display = 'none';
                 document.getElementById('game-screen').style.display = 'flex';
 
-                // FIX PARA GITHUB FAST LOAD:
-                // Si la imagen cargó antes (muy rápido), hasLoadedImage es true.
-                // Si aún no cargó, esperar.
                 if(this.hasLoadedImage) {
-                    // Forzar actualización visual inmediata de las fichas creadas recién
+                    // Forzar visibilidad de fichas para GitHub
                     this.updateTokensUI();
                 }
 
@@ -547,11 +544,9 @@
 
             loadImageLogic(img) {
                 const wrapper = document.getElementById('board-wrapper');
-                // NO usamos aspect-ratio. El wrapper ocupa 100% de la pantalla.
-                // La imagen se estira para llenar el contenedor (fill).
-                
+                // 'contain' mantiene proporción (no deformación)
                 img.style.display = 'block';
-                document.getElementById('placeholder').style.display = 'none';
+                document.getElementById('placeholder'). style.display = 'none';
                 const fd = document.getElementById('floating-dice');
                 const fb = document.getElementById('floating-btn');
                 fd.style.display = 'block';
@@ -563,7 +558,6 @@
                 
                 this.hasLoadedImage = true;
                 
-                // Mostrar fichas por si acaban de crearse
                 document.querySelectorAll('.token').forEach(t => t.style.display = 'block');
                 
                 this.updateTokensUI();
@@ -764,7 +758,7 @@
                     if (coords && p.element) {
                         p.element.style.left = `calc(${coords.x}% + ${p.offsetX}%)`;
                         p.element.style.top = `calc(${coords.y}% + ${p.offsetY}%)`;
-                        // Forzar visualización en GitHub
+                        // Forzar visualización
                         p.element.style.display = 'block';
                     }
                 });
@@ -807,4 +801,4 @@
         }
     </script>
 </body>
-    </html>
+                </html>
