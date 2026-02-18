@@ -89,7 +89,7 @@
         .btn-large:active { transform: translateY(4px); box-shadow: none; }
 
         /* --- JUEGO --- */
-        #game-screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 10px; }
+        #game-screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 10px; z-index: 10; }
         
         .fullscreen-btn {
             position: absolute; top: 10px; right: 10px; z-index: 100;
@@ -103,11 +103,12 @@
             width: 100%;
             background-color: #000;
             border-radius: 8px;
-            overflow: hidden; 
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 1; /* Nivel bajo para no tapar modales */
         }
 
         #board-image {
@@ -115,7 +116,6 @@
             height: 100%;
             object-fit: contain; 
             display: none; 
-            z-index: 1;
         }
 
         /* ELEMENTOS FLOTANTES */
@@ -147,18 +147,6 @@
         .btn-roll-float:disabled { background: #7f8c8d; cursor: not-allowed; opacity: 0.7; }
         .btn-roll-float:active { transform: translate(-50%, -48%) scale(0.95); }
 
-        /* CONTENEDOR DE FICHAS (NUEVA ESTRATEGIA) */
-        #tokens-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 50; /* Por encima de la imagen (1), por debajo de UI (60+) */
-            pointer-events: none; /* Para que no bloquee el tablero */
-            display: none; /* Se muestra con el juego */
-        }
-
         /* FICHAS */
         .token {
             width: 5%; height: 5%;
@@ -168,8 +156,8 @@
             line-height: 100%;
             transform: translate(-50%, -50%);
             transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
-            visibility: visible; /* VISIBILIDAD POR DEFECTO */
-            opacity: 1; /* OPACIDAD POR DEFECTO */
+            z-index: 50; 
+            display: none;
             filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
         }
         
@@ -178,10 +166,10 @@
 
         .bottom-panel { display: none !important; } 
         
-        /* MODAL */
+        /* MODAL - CORREGIDO Z-INDEX */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.92); z-index: 400;
+            background: rgba(0,0,0,0.95); z-index: 9999 !important; /* Forzado a estar encima de todo */
             display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.3s;
         }
@@ -192,6 +180,7 @@
             max-height: 85vh; overflow-y: auto;
             box-shadow: 0 0 25px rgba(0,0,0,0.5);
             text-transform: uppercase;
+            z-index: 10000; /* Doble seguridad */
         }
         .modal-title { color: var(--accent); margin-bottom: 15px; font-size: 1.6rem; }
         .modal-text { font-size: 1.1rem; line-height: 1.6; margin-bottom: 20px; text-align: left; white-space: pre-line; }
@@ -225,7 +214,7 @@
             background: #fff; 
             border-radius: 8px; 
             padding: 10px; 
-            z-index: 1000; 
+            z-index: 10000; /* Picker también muy arriba */
             grid-template-columns: repeat(4, 1fr); 
             gap: 8px; 
             box-shadow: 0 5px 20px rgba(0,0,0,0.5); 
@@ -275,15 +264,14 @@
             </div>
             <img id="board-image" src="tablero.png" alt="Tablero">
             
-            <!-- Contenedor de fichas (Siempre encima del tablero) -->
-            <div id="tokens-container"></div>
-
             <div id="floating-dice" class="floating-ui">
                 <div class="dice-display-float" id="dice-val">🎲</div>
             </div>
             <div id="floating-btn" class="floating-ui">
                 <button class="btn-roll-float" id="roll-btn" onclick="game.humanRoll()">TIRAR</button>
             </div>
+
+            <div id="tokens-container"></div>
         </div>
 
         <div class="bottom-panel">
@@ -298,6 +286,7 @@
             <div id="rankings-container" class="rankings-list"></div>
             <button class="modal-btn" onclick="location.reload()">JUGAR DE NUEVO</button>
         </div>
+    </div>
     
     <!-- MODAL EVENTOS -->
     <div class="modal-overlay" id="event-modal">
@@ -411,7 +400,6 @@
             63: { msg: "DE LA EMOCIÓN SE TE CAYÓ LA ENTRADA DEL CIRCO. 👉 VOLVÉS AL CASILLERO 60 A BUSCARLA. SI YA TENÍAS LA ENTRADA Y VOLVÉS A CAER ACÁ, NO PASA NADA.", type: "move", value: -3, once: true }
         };
 
-        // CAMBIO DE PANTALLAS
         function goToSetup() {
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('setup-screen').style.display = 'flex';
@@ -489,6 +477,19 @@
                 this.maxPos = 66;
                 this.hasLoadedImage = false;
                 this.finishedCount = 0;
+                this.checkImage();
+            }
+
+            checkImage() {
+                const img = document.getElementById('board-image');
+                const loadLogic = () => {
+                    this.loadImageLogic(img);
+                };
+                if (img.complete) {
+                    loadLogic();
+                } else {
+                    img.onload = loadLogic;
+                }
             }
 
             startFromSetup() {
@@ -505,10 +506,8 @@
                     offsetY: (Math.random() - 0.5) * 2,
                     finishOrder: null
                 }));
-
                 const tokensContainer = document.getElementById('tokens-container');
                 tokensContainer.innerHTML = '';
-                tokensContainer.style.display = 'block'; // ASEGURAR QUE EL CONTENEDOR ESTÉ VISIBLE
                 this.players.forEach(p => {
                     const el = document.createElement('div');
                     el.className = 'token';
@@ -516,25 +515,11 @@
                     tokensContainer.appendChild(el);
                     p.element = el;
                 });
-
                 document.getElementById('setup-screen').style.display = 'none';
                 document.getElementById('game-screen').style.display = 'flex';
-
-                // MOSTRAR FICHAS INMEDIATAMENTE AL EMPEZAR
-                this.updateTokensUI();
-                
-                // Y VERIFICAR SI LA IMAGYA YA ESTÁ LISTA
-                this.checkImage();
-            }
-
-            checkImage() {
-                const img = document.getElementById('board-image');
-                // Chequeamos si la imagen ya cargó (naturalHeight > 0 significa que hay datos)
-                if (img.naturalHeight > 0) {
-                    this.loadImageLogic(img);
-                } else {
-                    // Si no cargó, esperamos al evento load
-                    img.onload = () => this.loadImageLogic(img);
+                if(this.hasLoadedImage) {
+                    this.updateTokensUI();
+                    this.checkBotTurn();
                 }
             }
 
@@ -551,12 +536,9 @@
                 fb.style.display = 'block';
                 fb.style.left = uiConfig.button.x + '%';
                 fb.style.top = uiConfig.button.y + '%';
-                
                 this.hasLoadedImage = true;
-                
-                // ACTUALIZAR POSICIONES INMEDIATAMENTE (FICHAS YA VISUALES)
+                document.querySelectorAll('.token').forEach(t => t.style.display = 'block');
                 this.updateTokensUI();
-                
                 if(this.players.length) this.checkBotTurn();
                 else setup.init();
             }
@@ -781,7 +763,6 @@
             wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
         }
 
-        // INICIALIZACIÓN
         const game = new Game();
         setup.init();
         document.getElementById('fileInput').addEventListener('change', () => game.loadImage());
