@@ -103,7 +103,7 @@
             width: 100%;
             background-color: #000;
             border-radius: 8px;
-            overflow: hidden;
+            overflow: hidden; /* IMPORTANTE: Cortar cualquier cosa que se salga */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -115,6 +115,7 @@
             height: 100%;
             object-fit: contain; 
             display: none; 
+            z-index: 1; /* Imagen al fondo */
         }
 
         /* ELEMENTOS FLOTANTES */
@@ -146,7 +147,7 @@
         .btn-roll-float:disabled { background: #7f8c8d; cursor: not-allowed; opacity: 0.7; }
         .btn-roll-float:active { transform: translate(-50%, -48%) scale(0.95); }
 
-        /* FICHAS */
+        /* FICHAS - CORREGIDO VISIBILIDAD */
         .token {
             width: 5%; height: 5%;
             position: absolute;
@@ -155,11 +156,18 @@
             line-height: 100%;
             transform: translate(-50%, -50%);
             transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
-            z-index: 50; /* Aumentado z-index */
-            display: none;
+            z-index: 999; /* Z-INDEX MUY ALTO */
+            visibility: hidden; /* Oculto inicialmente, pero existe en el DOM */
+            opacity: 0; /* Transparente inicialmente */
             filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
         }
         
+        /* Clase para mostrarlas */
+        .token.visible {
+            visibility: visible;
+            opacity: 1;
+        }
+
         .token.frozen { transition: none !important; }
         .token.finished { opacity: 0.4; filter: grayscale(100%); }
 
@@ -260,7 +268,7 @@
             <div class="placeholder-text" id="placeholder" onclick="document.getElementById('fileInput').click()">
                 📷 CARGAR DIBUJO AQUÍ
             </div>
-            <!-- IMPORTANTE: Quitamos el onload="" para evitar el error de sincronización -->
+            <!-- Sin eventos onload, manejamos la carga en JS para controlar el flujo -->
             <img id="board-image" src="tablero.png" alt="Tablero">
             
             <div id="floating-dice" class="floating-ui">
@@ -477,25 +485,6 @@
                 this.maxPos = 66;
                 this.hasLoadedImage = false;
                 this.finishedCount = 0;
-                
-                // Verificar imagen al instanciar el juego
-                this.checkImage();
-            }
-
-            // NUEVO MÉTODO: Verifica si la imagen ya cargó o si debe esperar
-            checkImage() {
-                const img = document.getElementById('board-image');
-                const loadLogic = () => {
-                    this.loadImageLogic(img);
-                };
-
-                if (img.complete) {
-                    // La imagen ya cargó (caché de GitHub)
-                    loadLogic();
-                } else {
-                    // La imagen está cargando, esperamos al evento
-                    img.onload = loadLogic;
-                }
             }
 
             startFromSetup() {
@@ -517,7 +506,7 @@
                 tokensContainer.innerHTML = '';
                 this.players.forEach(p => {
                     const el = document.createElement('div');
-                    el.className = 'token';
+                    el.className = 'token'; // Ya tiene visibility: hidden por CSS
                     el.innerText = p.emoji;
                     tokensContainer.appendChild(el);
                     p.element = el;
@@ -526,10 +515,27 @@
                 document.getElementById('setup-screen').style.display = 'none';
                 document.getElementById('game-screen').style.display = 'flex';
 
-                // Si la imagen ya se cargó antes de empezar, refrescamos las fichas
                 if(this.hasLoadedImage) {
+                    this.showTokens(); // Mostrar si ya cargó
                     this.updateTokensUI();
                     this.checkBotTurn();
+                }
+            }
+
+            showTokens() {
+                document.querySelectorAll('.token').forEach(t => {
+                    t.classList.add('visible');
+                });
+            }
+
+            checkImage() {
+                const img = document.getElementById('board-image');
+                // Chequeamos si la imagen ya cargó (naturalHeight > 0 significa que hay datos)
+                if (img.naturalHeight > 0) {
+                    this.loadImageLogic(img);
+                } else {
+                    // Si no cargó, esperamos al evento load
+                    img.onload = () => this.loadImageLogic(img);
                 }
             }
 
@@ -548,12 +554,9 @@
                 fb.style.top = uiConfig.button.y + '%';
                 
                 this.hasLoadedImage = true;
-                
-                // MOSTRAR FICHAS AHORA QUE ESTAMOS SEGUROS QUE EXISTEN
-                document.querySelectorAll('.token').forEach(t => t.style.display = 'block');
+                this.showTokens(); // <--- CLAVE: Mostrar tokens aquí
                 this.updateTokensUI();
                 
-                // Iniciar bot si es necesario
                 if(this.players.length) this.checkBotTurn();
                 else setup.init();
             }
@@ -778,10 +781,13 @@
             wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
         }
 
-        // Iniciar juego
-        const game = new Game();
-        setup.init();
-        document.getElementById('fileInput').addEventListener('change', () => game.loadImage());
+        // INICIALIZACIÓN AL FINAL DEL SCRIPT
+        window.addEventListener('load', () => {
+            const game = new Game();
+            setup.init();
+            game.checkImage(); // Verificar imagen al cargar la página
+            document.getElementById('fileInput').addEventListener('change', () => game.loadImage());
+        });
 
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
