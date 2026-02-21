@@ -98,7 +98,7 @@
         }
         .header-name { flex: 1; text-align: left; }
         .header-emoji { width: 50px; text-align: center; }
-        .header-bot { width: 80px; text-align: center; } /* Espacio para toggle */
+        .header-bot { width: 80px; text-align: center; }
 
         .player-config {
             background: rgba(255,255,255,0.1);
@@ -190,7 +190,7 @@
             cursor: pointer; border: 2px dashed #555; margin: 20px;
             z-index: 10; 
             position: relative; 
-            display: none; /* Oculto ya que cargamos auto */
+            display: none;
         }
 
         /* --- GRUPO UI UNIFICADO --- */
@@ -207,11 +207,14 @@
             opacity: 1;
         }
 
-        /* --- DADO 3D --- */
+        /* --- DADO 3D RESPONSIVE --- */
         .scene {
-            width: 100px;
-            height: 100px;
+            /* Usamos vmin para que sea proporcional al ancho o alto de la pantalla (el que sea menor) */
+            width: 14vmin; 
+            height: 14vmin;
             perspective: 600px;
+            /* Forzamos modo claro para evitar que el dado se vea negro en modo oscuro */
+            color-scheme: light; 
         }
 
         .cube {
@@ -219,42 +222,44 @@
             height: 100%;
             position: relative;
             transform-style: preserve-3d;
-            transform: translateZ(-50px);
+            /* La mitad de 14vmin es 7vmin */
+            transform: translateZ(-7vmin); 
             transition: transform 3s cubic-bezier(0.15, 0.5, 0.25, 1);
         }
 
         .cube__face {
             position: absolute;
-            width: 100px;
-            height: 100px;
-            background: white;
+            width: 100%;
+            height: 100%;
+            background: white; /* Fondo blanco forzado */
             border: 2px solid #ccc;
-            border-radius: 20px;
+            border-radius: 20%; /* Redondeado relativo */
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             grid-template-rows: 1fr 1fr 1fr;
-            padding: 15px;
+            padding: 10%; /* Padding relativo */
             box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
         }
 
         .dot {
-            width: 18px;
-            height: 18px;
-            background-color: black;
+            width: 20%; /* Tamaño relativo */
+            height: 20%;
+            background-color: black; /* Puntos negros forzados */
             border-radius: 50%;
             justify-self: center;
             align-self: center;
             box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5);
         }
 
-        .cube__face--1  { transform: rotateY(  0deg) translateZ(50px); }
-        .cube__face--2  { transform: rotateY( 90deg) translateZ(50px); }
-        .cube__face--3  { transform: rotateY(180deg) translateZ(50px); }
-        .cube__face--4  { transform: rotateY(-90deg) translateZ(50px); }
-        .cube__face--5  { transform: rotateX( 90deg) translateZ(50px); }
-        .cube__face--6  { transform: rotateX(-90deg) translateZ(50px); }
+        /* Rotaciones ajustadas para translateZ(7vmin) */
+        .cube__face--1  { transform: rotateY(  0deg) translateZ(7vmin); }
+        .cube__face--2  { transform: rotateY( 90deg) translateZ(7vmin); }
+        .cube__face--3  { transform: rotateY(180deg) translateZ(7vmin); }
+        .cube__face--4  { transform: rotateY(-90deg) translateZ(7vmin); }
+        .cube__face--5  { transform: rotateX( 90deg) translateZ(7vmin); }
+        .cube__face--6  { transform: rotateX(-90deg) translateZ(7vmin); }
 
-        /* Posicionamiento de puntos */
+        /* Posicionamiento de puntos (Grid) */
         .cube__face--1 .dot { grid-area: 2 / 2; }
         .cube__face--2 .dot:nth-child(1) { grid-area: 1 / 1; } .cube__face--2 .dot:nth-child(2) { grid-area: 3 / 3; }
         .cube__face--3 .dot:nth-child(1) { grid-area: 1 / 1; } .cube__face--3 .dot:nth-child(2) { grid-area: 2 / 2; } .cube__face--3 .dot:nth-child(3) { grid-area: 3 / 3; }
@@ -306,11 +311,11 @@
         .btn-roll-float:disabled { background: #7f8c8d; cursor: not-allowed; opacity: 0.7; }
         .btn-roll-float:active { transform: scale(0.95); }
 
-        /* FICHAS */
+        /* FICHAS (10% más grandes) */
         .token {
-            width: 3%; height: 3%; 
+            width: 3.3%; height: 3.3%; /* Era 3% */
             position: absolute;
-            font-size: 1.25rem;
+            font-size: 1.4rem; /* Era 1.25rem */
             text-align: center;
             line-height: 100%;
             transform: translate(-50%, -50%);
@@ -381,17 +386,14 @@
 
     <!-- 1. PANTALLA DE INICIO -->
     <div id="start-screen">
-        <!-- LOGO CARGADO AUTOMÁTICAMENTE -->
         <img src="logo.png" alt="LOGO" class="logo-img" onerror="this.style.display='none';">
-        
         <button class="btn-beautiful" onclick="goToSetup()">JUGAR</button>
     </div>
 
-    <!-- 2. PANTALLA DE JUGADORES (ANTERIOR SETUP) -->
+    <!-- 2. PANTALLA DE JUGADORES -->
     <div id="setup-screen">
         <h1>JUGADORES</h1>
         
-        <!-- SUBTÍTULOS DE COLUMNAS -->
         <div class="setup-headers">
             <div class="header-name">NOMBRES</div>
             <div class="header-emoji">PERSONAJES</div>
@@ -417,21 +419,19 @@
     <!-- 3. PANTALLA DE JUEGO -->
     <div id="game-screen">
         <button class="bgm-btn" id="bgm-btn" onclick="toggleBGM()">🔇</button>
-        <button class="fullscreen-btn" onclick="toggleFullScreen()">⛶ PANTALLA COMPLETA</button>
+        <button class="fullscreen-btn" id="fullscreen-btn" onclick="toggleFullScreen()">⛶ PANTALLA COMPLETA</button>
 
         <!-- TABLERO -->
         <div class="board-wrapper" id="board-wrapper">
-            <!-- PLACEHOLDER OCULTO PORQUE CARGAMOS IMAGEN AUTO -->
             <div class="placeholder-text" id="placeholder"></div>
             
-            <!-- CAPA CÁMARA (Contiene Tablero + Fichas) -->
+            <!-- CAPA CÁMARA -->
             <div id="board-camera">
-                <!-- IMAGEN CARGADA DESDE REPOSITORIO -->
                 <img id="board-image" src="tablero.png" alt="Tablero" onerror="this.src='https://via.placeholder.com/800x600?text=NO+SE+ENCONTRO+TABLERO.PNG';">
                 <div id="tokens-container"></div>
             </div>
             
-            <!-- UI FLOTANTE (Dado + Botón) -->
+            <!-- UI FLOTANTE -->
             <div id="ui-group" class="floating-ui">
                 <div class="scene">
                     <div class="cube" id="cube">
@@ -474,7 +474,7 @@
     <!-- EMOJI PICKER -->
     <div id="emoji-picker" class="emoji-grid"></div>
 
-    <!-- AUDIOS DE FONDO CARGADOS AUTOMÁTICAMENTE -->
+    <!-- AUDIOS DE FONDO -->
     <audio id="bgm-ambiente" src="ambiente.mp3" loop></audio>
     <audio id="bgm-ganador" src="ganador.mp3" loop></audio>
 
@@ -484,6 +484,7 @@
         const bgmBtn = document.getElementById('bgm-btn');
         const bgmAmbiente = document.getElementById('bgm-ambiente');
         const bgmGanador = document.getElementById('bgm-ganador');
+        const fsBtn = document.getElementById('fullscreen-btn');
 
         bgmAmbiente.volume = 0.3;
         bgmGanador.volume = 0.3;
@@ -740,7 +741,6 @@
                 } else {
                     img.onload = loadLogic;
                 }
-                // Manejo de error si la imagen no carga (github repo issue)
                 img.onerror = () => {
                     console.warn("No se pudo cargar tablero.png, intentando recargar en 1s...");
                     setTimeout(this.checkImage.bind(this), 1000);
@@ -991,7 +991,7 @@
                 this.cubeRotX += extraX + (targetX - (this.cubeRotX % 360));
                 this.cubeRotY += extraY + (targetY - (this.cubeRotY % 360));
 
-                cube.style.transform = `translateZ(-50px) rotateX(${this.cubeRotX}deg) rotateY(${this.cubeRotY}deg)`;
+                cube.style.transform = `translateZ(-7vmin) rotateX(${this.cubeRotX}deg) rotateY(${this.cubeRotY}deg)`;
             }
 
             handleFinish(player) {
@@ -1159,10 +1159,21 @@
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => console.log(err));
+                fsBtn.style.display = 'none';
             } else {
-                if (document.exitFullscreen) document.exitFullscreen();
+                document.exitFullscreen();
+                fsBtn.style.display = 'block';
             }
         }
+
+        // Escuchar cambios de pantalla completa (ej: si el usuario presiona ESC)
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                fsBtn.style.display = 'none';
+            } else {
+                fsBtn.style.display = 'block';
+            }
+        });
     </script>
 </body>
 </html>
