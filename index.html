@@ -10,6 +10,10 @@
             --accent: #e74c3c;
             --text: #ecf0f1;
             --gold: #f1c40f;
+            
+            /* Variables para tamaño del dado (Responsive via CSS y JS) */
+            --dice-size: 14vmin;
+            --dice-half: 7vmin;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; text-transform: uppercase; }
@@ -48,7 +52,6 @@
             100% { transform: translateY(0px); }
         }
 
-        /* --- BOTÓN HERMOSO REDONDO --- */
         .btn-beautiful {
             padding: 15px 40px;
             font-size: 1.5rem;
@@ -56,7 +59,7 @@
             color: #2c3e50;
             background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
             border: none;
-            border-radius: 50px; /* Redondeado tipo píldora */
+            border-radius: 50px;
             cursor: pointer;
             box-shadow: 0 6px 0 #d35400, 0 15px 20px rgba(0,0,0,0.4);
             transition: transform 0.1s, box-shadow 0.1s;
@@ -68,7 +71,7 @@
             box-shadow: 0 0 0 #d35400, 0 5px 10px rgba(0,0,0,0.4);
         }
 
-        /* --- PANTALLA DE CONFIGURACIÓN (JUGADORES) --- */
+        /* --- PANTALLA DE CONFIGURACIÓN --- */
         #setup-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--primary); z-index: 200;
@@ -85,7 +88,6 @@
 
         h1 { color: var(--gold); text-align: center; margin-bottom: 10px; font-size: 1.8rem; text-shadow: 2px 2px 0px #000; }
         
-        /* Encabezados de columnas */
         .setup-headers {
             display: flex;
             width: 100%;
@@ -165,7 +167,6 @@
             z-index: 1;
         }
 
-        /* --- CAPA DE CÁMARA --- */
         #board-camera {
             width: 100%;
             height: 100%;
@@ -184,7 +185,6 @@
             object-fit: fill; 
         }
 
-        /* --- TEXTO PLACEHOLDER --- */
         .placeholder-text {
             color: #ccc; text-align: center; padding: 50px;
             cursor: pointer; border: 2px dashed #555; margin: 20px;
@@ -193,7 +193,6 @@
             display: none;
         }
 
-        /* --- GRUPO UI UNIFICADO --- */
         .floating-ui {
             position: absolute;
             z-index: 60; 
@@ -207,14 +206,12 @@
             opacity: 1;
         }
 
-        /* --- DADO 3D RESPONSIVE --- */
+        /* --- DADO 3D MEJORADO --- */
         .scene {
-            /* Usamos vmin para que sea proporcional al ancho o alto de la pantalla (el que sea menor) */
-            width: 14vmin; 
-            height: 14vmin;
+            width: var(--dice-size);
+            height: var(--dice-size);
             perspective: 600px;
-            /* Forzamos modo claro para evitar que el dado se vea negro en modo oscuro */
-            color-scheme: light; 
+            color-scheme: light; /* Intento de forzar claro */
         }
 
         .cube {
@@ -222,8 +219,8 @@
             height: 100%;
             position: relative;
             transform-style: preserve-3d;
-            /* La mitad de 14vmin es 7vmin */
-            transform: translateZ(-7vmin); 
+            /* Usamos variable para que cambie con media query */
+            transform: translateZ(calc(var(--dice-half) * -1)); 
             transition: transform 3s cubic-bezier(0.15, 0.5, 0.25, 1);
         }
 
@@ -231,35 +228,35 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            background: white; /* Fondo blanco forzado */
+            background-color: white !important; /* Forzado Blanco */
             border: 2px solid #ccc;
-            border-radius: 20%; /* Redondeado relativo */
+            border-radius: 20%;
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             grid-template-rows: 1fr 1fr 1fr;
-            padding: 10%; /* Padding relativo */
+            padding: 10%;
             box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
         }
 
         .dot {
-            width: 20%; /* Tamaño relativo */
-            height: 20%;
-            background-color: black; /* Puntos negros forzados */
+            width: 30%; /* Puntos más grandes (era 20%) */
+            height: 30%;
+            background-color: black !important; /* Forzado Negro */
             border-radius: 50%;
             justify-self: center;
             align-self: center;
             box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5);
         }
 
-        /* Rotaciones ajustadas para translateZ(7vmin) */
-        .cube__face--1  { transform: rotateY(  0deg) translateZ(7vmin); }
-        .cube__face--2  { transform: rotateY( 90deg) translateZ(7vmin); }
-        .cube__face--3  { transform: rotateY(180deg) translateZ(7vmin); }
-        .cube__face--4  { transform: rotateY(-90deg) translateZ(7vmin); }
-        .cube__face--5  { transform: rotateX( 90deg) translateZ(7vmin); }
-        .cube__face--6  { transform: rotateX(-90deg) translateZ(7vmin); }
+        /* Rotaciones con variable CSS */
+        .cube__face--1  { transform: rotateY(  0deg) translateZ(var(--dice-half)); }
+        .cube__face--2  { transform: rotateY( 90deg) translateZ(var(--dice-half)); }
+        .cube__face--3  { transform: rotateY(180deg) translateZ(var(--dice-half)); }
+        .cube__face--4  { transform: rotateY(-90deg) translateZ(var(--dice-half)); }
+        .cube__face--5  { transform: rotateX( 90deg) translateZ(var(--dice-half)); }
+        .cube__face--6  { transform: rotateX(-90deg) translateZ(var(--dice-half)); }
 
-        /* Posicionamiento de puntos (Grid) */
+        /* Posicionamiento de puntos */
         .cube__face--1 .dot { grid-area: 2 / 2; }
         .cube__face--2 .dot:nth-child(1) { grid-area: 1 / 1; } .cube__face--2 .dot:nth-child(2) { grid-area: 3 / 3; }
         .cube__face--3 .dot:nth-child(1) { grid-area: 1 / 1; } .cube__face--3 .dot:nth-child(2) { grid-area: 2 / 2; } .cube__face--3 .dot:nth-child(3) { grid-area: 3 / 3; }
@@ -311,11 +308,11 @@
         .btn-roll-float:disabled { background: #7f8c8d; cursor: not-allowed; opacity: 0.7; }
         .btn-roll-float:active { transform: scale(0.95); }
 
-        /* FICHAS (10% más grandes) */
+        /* FICHAS */
         .token {
-            width: 3.3%; height: 3.3%; /* Era 3% */
+            width: 3.3%; height: 3.3%; 
             position: absolute;
-            font-size: 1.4rem; /* Era 1.25rem */
+            font-size: 1.4rem; 
             text-align: center;
             line-height: 100%;
             transform: translate(-50%, -50%);
@@ -324,7 +321,6 @@
             display: none;
             filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
         }
-        
         .token.frozen { transition: none !important; }
         .token.finished { opacity: 0.4; filter: grayscale(100%); }
 
@@ -348,7 +344,6 @@
         }
         .modal-title { color: var(--accent); margin-bottom: 15px; font-size: 1.6rem; }
         .modal-text { font-size: 1.1rem; line-height: 1.6; margin-bottom: 20px; text-align: left; white-space: pre-line; }
-        
         .modal-btn {
             background: var(--accent); color: white; border: none;
             padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 1.1rem; font-weight: bold;
@@ -380,17 +375,38 @@
         .emoji-grid span { cursor: pointer; font-size: 1.8rem; text-align: center; padding: 5px; border-radius: 4px; }
         .emoji-grid span:hover { background: #eee; }
 
+        /* --- MODO CELULAR (AJUSTES ESPECÍFICOS) --- */
+        @media (max-width: 768px) {
+            :root {
+                /* Dado a la mitad de tamaño */
+                --dice-size: 8vmin;
+                --dice-half: 4vmin;
+            }
+            
+            /* Botón 2 veces más chico */
+            .btn-roll-float {
+                padding: 4px 12px;
+                font-size: 0.7rem;
+                border-radius: 15px;
+            }
+            
+            /* Emoji del jugador actual también más chico para proporción */
+            .current-player-emoji {
+                width: 30px;
+                height: 30px;
+                font-size: 1.2rem;
+            }
+        }
+
     </style>
 </head>
 <body>
 
-    <!-- 1. PANTALLA DE INICIO -->
     <div id="start-screen">
         <img src="logo.png" alt="LOGO" class="logo-img" onerror="this.style.display='none';">
         <button class="btn-beautiful" onclick="goToSetup()">JUGAR</button>
     </div>
 
-    <!-- 2. PANTALLA DE JUGADORES -->
     <div id="setup-screen">
         <h1>JUGADORES</h1>
         
@@ -416,22 +432,18 @@
         <button class="btn-beautiful" onclick="game.startFromSetup()">JUGAR</button>
     </div>
 
-    <!-- 3. PANTALLA DE JUEGO -->
     <div id="game-screen">
         <button class="bgm-btn" id="bgm-btn" onclick="toggleBGM()">🔇</button>
         <button class="fullscreen-btn" id="fullscreen-btn" onclick="toggleFullScreen()">⛶ PANTALLA COMPLETA</button>
 
-        <!-- TABLERO -->
         <div class="board-wrapper" id="board-wrapper">
             <div class="placeholder-text" id="placeholder"></div>
             
-            <!-- CAPA CÁMARA -->
             <div id="board-camera">
                 <img id="board-image" src="tablero.png" alt="Tablero" onerror="this.src='https://via.placeholder.com/800x600?text=NO+SE+ENCONTRO+TABLERO.PNG';">
                 <div id="tokens-container"></div>
             </div>
             
-            <!-- UI FLOTANTE -->
             <div id="ui-group" class="floating-ui">
                 <div class="scene">
                     <div class="cube" id="cube">
@@ -453,7 +465,6 @@
         </div>
     </div>
 
-    <!-- MODAL RESULTADOS / CLASIFICACIÓN -->
     <div class="modal-overlay" id="results-modal">
         <div class="modal-content">
             <h2 class="modal-title" id="results-title">CLASIFICACIÓN</h2>
@@ -462,7 +473,6 @@
         </div>
     </div>
     
-    <!-- MODAL EVENTOS -->
     <div class="modal-overlay" id="event-modal">
         <div class="modal-content">
             <h2 class="modal-title" id="event-title">¡EVENTO!</h2>
@@ -471,15 +481,12 @@
         </div>
     </div>
 
-    <!-- EMOJI PICKER -->
     <div id="emoji-picker" class="emoji-grid"></div>
 
-    <!-- AUDIOS DE FONDO -->
     <audio id="bgm-ambiente" src="ambiente.mp3" loop></audio>
     <audio id="bgm-ganador" src="ganador.mp3" loop></audio>
 
     <script>
-        // --- SISTEMA DE SONIDO Y JUEGO ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const bgmBtn = document.getElementById('bgm-btn');
         const bgmAmbiente = document.getElementById('bgm-ambiente');
@@ -871,10 +878,8 @@
                 let forwardPos = player.pos + diceResult;
 
                 if (forwardPos > this.maxPos) {
-                    // REBOTE VISUAL: IDA A META
                     await this.movePlayerStepByStep(player, this.maxPos);
                     await this.wait(400);
-                    // REBOTE VISUAL: VUELTA
                     const excess = forwardPos - this.maxPos;
                     const reboundPos = this.maxPos - excess;
                     await this.movePlayerStepByStep(player, reboundPos);
@@ -991,7 +996,8 @@
                 this.cubeRotX += extraX + (targetX - (this.cubeRotX % 360));
                 this.cubeRotY += extraY + (targetY - (this.cubeRotY % 360));
 
-                cube.style.transform = `translateZ(-7vmin) rotateX(${this.cubeRotX}deg) rotateY(${this.cubeRotY}deg)`;
+                // Usamos CSS Variable para que responda al Media Query
+                cube.style.transform = `translateZ(calc(var(--dice-half) * -1)) rotateX(${this.cubeRotX}deg) rotateY(${this.cubeRotY}deg)`;
             }
 
             handleFinish(player) {
@@ -1124,7 +1130,6 @@
                     newBtn.addEventListener('click', closeModal);
                     modal.classList.add('show');
 
-                    // Si es un bot, cerrar automáticamente tras 2 segundos
                     if (player && player.isBot) {
                         setTimeout(() => {
                             closeModal();
@@ -1166,7 +1171,6 @@
             }
         }
 
-        // Escuchar cambios de pantalla completa (ej: si el usuario presiona ESC)
         document.addEventListener('fullscreenchange', () => {
             if (document.fullscreenElement) {
                 fsBtn.style.display = 'none';
